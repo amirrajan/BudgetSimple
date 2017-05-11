@@ -37,6 +37,7 @@ end
 
 def run_rake
   PTY.spawn('rake ios:device') do |stdout, stdin, _|
+    @stdin = stdin
     stdin.puts 'do_live_reload'
     Thread.new do
       loop do
@@ -56,4 +57,11 @@ PTY.spawn("rerun \"kill -30 #{Process.pid}\" --no-notify") do |stdout, _, _|
   end
 end
 
-Readline.readline('Touch file to reload. Press enter to exit.', true)
+while expr = Readline.readline("", true)
+  if expr == 'exit'
+    exit(0)
+  else
+    @stdin.puts expr
+  end
+  sleep 0.2
+end
