@@ -21,8 +21,32 @@ class RegistrationScreen < UI::Screen
      [:label, { text: 'Budget Simple' }],
      [:input, { id: :amount, placeholder: 'Amount', proxy: { keyboardType: UIKeyboardTypeNumbersAndPunctuation } }],
      [:input, { id: :category, placeholder: 'Category' }],
-     [:input, { id: :date, placeholder: 'Date' }]
+     [:input, { id: :date, placeholder: 'Date', date_picker: true, on_change: :format_date_input, text: format_date(*current_date) }]
     ]
+  end
+
+  def current_date
+    if defined? Java
+      calendar = Java::Util::Calendar.getInstance
+      year = calendar.get(Java::Util::Calendar::YEAR)
+      month = calendar.get(Java::Util::Calendar::MONTH)
+      day = calendar.get(Java::Util::Calendar::DAY_OF_MONTH)
+    else
+      components = NSCalendar.currentCalendar.components(NSCalendarUnitDay | NSCalendarUnitMonth | NSCalendarUnitYear, fromDate: NSDate.date)
+      day = components.day
+      month = components.month
+      year = components.year
+    end
+
+    [year, month, day]
+  end
+
+  def format_date year, month, day
+    "#{month}/#{day}/#{year}"
+  end
+
+  def format_date_input sender, *args
+    sender.text = format_date(*args)
   end
 
   def css
