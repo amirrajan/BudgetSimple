@@ -1,15 +1,34 @@
 module Hiccup
+  def on_show
+    navigation.hide_bar
+    views[:flash][:view].move_y_to(ViewState.device_screen_height, false)
+    on_show_core if respond_to? :on_show_core
+  end
+
+  def flash message
+    views[:flash_message][:view].text = message
+    views[:flash][:view].move_y_by(-views[:flash][:view].proxy.frame.size.height - 10, true)
+
+    Task.after 3 do
+      views[:flash][:view].move_y_by(views[:flash][:view].proxy.frame.size.height + 10, true)
+    end
+  end
+
+  def init_dismiss_keyboard_on_tap_for_ios
+    return unless ViewState.ios?
+    return if @responder
+    @recognizer = UITapGestureRecognizer.alloc.initWithTarget self, action: 'blur_current_responder'
+    view.proxy.addGestureRecognizer(@recognizer)
+  end
+
   def render definition, styles
     view.children.each do |c|
       view.delete_child c
     end
 
-    if defined? UITapGestureRecognizer
-      if !@recognizer
-        @recognizer = UITapGestureRecognizer.alloc.initWithTarget self, action: 'blur_current_responder'
-        view.proxy.addGestureRecognizer(@recognizer)
-      end
-    end
+    definition << flash_view
+
+    init_dismiss_keyboard_on_tap_for_ios
 
     views = {}
     classes = {}
@@ -32,6 +51,11 @@ module Hiccup
     @bar_button_tags = bar_button_tags
   end
 
+  def flash_view
+    [:view, { id: :flash, background_color: :purple, padding: 20 },
+     [:label, { id: :flash_message, text: 'Flash' }]]
+  end
+
   def control_map
     {
       view: UI::View,
@@ -42,7 +66,7 @@ module Hiccup
   end
 
   def special_keys
-    [:id, :tap, :meta, :class, :focus, :proxy, :on_change]
+    [:id, :tap, :meta, :class, :focus, :proxy, :on_change, :keyboard]
   end
 
   def set_attribute view, k, v
@@ -89,13 +113,22 @@ module Hiccup
       instance.on(:focus) { ViewState.currently_focused_control = instance }
     end
 
+    if attributes[:keyboard] && attributes[:keyboard] == :numbers_and_punctuation
+      if ViewState.ios?
+        instance.proxy.keyboardType = UIKeyboardTypeNumbersAndPunctuation
+      end
+    end
+
     if attributes[:proxy]
       attributes[:proxy].each do |k, v|
         instance.proxy.send("#{k}=", v)
       end
     end
 
-    attributes[:tap] && instance.on(:tap) { send(attributes[:tap], instance, attributes) }
+    attributes[:tap] && instance.on(:tap) do
+      ViewState.blur
+      send(attributes[:tap], instance, attributes)
+    end
 
     instance
   end
