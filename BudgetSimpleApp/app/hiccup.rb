@@ -42,7 +42,7 @@ module Hiccup
   end
 
   def special_keys
-    [:id, :tap, :meta, :class, :focus, :proxy]
+    [:id, :tap, :meta, :class, :focus, :proxy, :on_change]
   end
 
   def set_attribute view, k, v
@@ -81,13 +81,17 @@ module Hiccup
       set_attribute instance, k, v
     end
 
+    if attributes[:on_change]
+      instance.on(:change) { |*args| send(attributes[:on_change], instance, *args) }
+    end
+
     if view_symbol == :input
       instance.on(:focus) { ViewState.currently_focused_control = instance }
     end
 
     if attributes[:proxy]
       attributes[:proxy].each do |k, v|
-        instance.proxy.send("#{k}=", v) if instance.proxy.respond_to? "#{k}="
+        instance.proxy.send("#{k}=", v)
       end
     end
 
