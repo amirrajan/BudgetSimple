@@ -115,25 +115,11 @@ module UI
           if flag
             date_picker = UIDatePicker.alloc.init
             date_picker.datePickerMode = UIDatePickerModeDate
-            date_picker.addTarget(self, action:'_datePickerValueChanged:', forControlEvents:UIControlEventValueChanged)
+            date_picker.addTarget(self, action:'_datePickerValueChanged:', forControlEvents: UIControlEventValueChanged)
             date_picker
           end
       end
 
-    end
-
-    def _applyInputAccessory
-      proxy.inputAccessoryView =
-        if @date_picker
-          toolbar = UIToolbar.alloc.initWithFrame [[0, 0], [proxy.bounds.size.width, 44]]
-          toolbar.items = [
-            # UIBarButtonItem.alloc.initWithTitle('Next', style: UIBarButtonItemStylePlain, target: self, action: '_datePickerDone:'),
-            # UIBarButtonItem.alloc.initWithTitle('Prev', style: UIBarButtonItemStylePlain, target: self, action: '_datePickerDone:'),
-            # UIBarButtonItem.alloc.initWithBarButtonSystemItem(UIBarButtonSystemItemFlexibleSpace, target: nil, action: nil),
-            # UIBarButtonItem.alloc.initWithTitle('Done', style: UIBarButtonItemStyleDone, target: self, action: '_datePickerDone:')
-          ]
-          toolbar
-        end
     end
 
     def _datePickerDone(sender)
@@ -141,7 +127,7 @@ module UI
     end
 
     def _datePickerValueChanged(sender)
-      components = NSCalendar.currentCalendar.components(NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit, fromDate:sender.date)
+      components = NSCalendar.currentCalendar.components(NSDayCalendarUnit | NSMonthCalendarUnit | NSYearCalendarUnit, fromDate: sender.date)
       @on_change_disabled = true
       begin
         trigger :change, components.year, components.month, components.day
