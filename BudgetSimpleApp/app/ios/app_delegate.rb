@@ -2,6 +2,9 @@ class AppDelegate
   attr_accessor :window
 
   def application(application, didFinishLaunchingWithOptions:launchOptions)
+    ViewState.platform = :ios
+    ViewState.device_screen_height = device_screen_height
+
     NSNotificationCenter.defaultCenter.addObserver(
       self,
       selector: 'keyboard_did_show',
@@ -16,7 +19,7 @@ class AppDelegate
       object: nil
     )
 
-    main_screen = RegistrationScreen.new
+    main_screen = ExpenseScreen.new
     navigation = UI::Navigation.new(main_screen)
     flow_app = UI::Application.new(navigation, self)
     flow_app.start

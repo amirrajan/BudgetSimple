@@ -1,4 +1,4 @@
-class RegistrationScreen
+class ExpenseScreen
   def markup
   end
 

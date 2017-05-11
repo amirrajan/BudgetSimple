@@ -1,9 +1,5 @@
-class RegistrationScreen < UI::Screen
+class ExpenseScreen < UI::Screen
   include Hiccup
-
-  def on_show
-    navigation.hide_bar
-  end
 
   def on_load
     $self = self
@@ -19,14 +15,21 @@ class RegistrationScreen < UI::Screen
   def markup
     [:view, { background_color: '212225', flex: 1, padding: 40 },
      [:label, { text: 'Budget Simple' }],
-     [:input, { id: :amount, placeholder: 'Amount', proxy: { keyboardType: UIKeyboardTypeNumbersAndPunctuation } }],
+     [:input, { id: :amount, placeholder: 'Amount', keyboard: :numbers_and_punctuation }],
      [:input, { id: :category, placeholder: 'Category' }],
-     [:input, { id: :date, placeholder: 'Date', date_picker: true, on_change: :format_date_input, text: format_date(*current_date) }]
-    ]
+     [:input, { id: :date,
+                placeholder: 'Date',
+                date_picker: true,
+                on_change: :format_date_input,
+                text: format_date(*current_date) }],
+     [:button, { id: :save_expense,
+                 title: 'Save',
+                 tap: :save_expense }]
+     ]
   end
 
   def current_date
-    if defined? Java
+    if ViewState.android?
       calendar = Java::Util::Calendar.getInstance
       year = calendar.get(Java::Util::Calendar::YEAR)
       month = calendar.get(Java::Util::Calendar::MONTH)
@@ -49,6 +52,12 @@ class RegistrationScreen < UI::Screen
     sender.text = format_date(*args)
   end
 
+  def save_expense sender, attributes
+    if views[:amount][:view].text == ''
+      flash 'Amount is required.'
+    end
+  end
+
   def css
     { label: { text_alignment: :center,
                margin: 10,
@@ -65,13 +74,14 @@ class RegistrationScreen < UI::Screen
                margin: 5,
                height: 32,
                padding: 20,
+               font: font,
                input_offset: 10 },
       button: { color: :white,
                 height: 40,
-                background_color: :orange,
+                background_color: '5a82a5',
                 border_radius: 8,
                 border_width: 1,
-                border_color: :orange,
+                border_color: '212225',
                 font: font,
                 margin: 2 } }
   end

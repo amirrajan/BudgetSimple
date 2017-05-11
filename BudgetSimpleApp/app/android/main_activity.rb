@@ -4,7 +4,7 @@ class MainActivity < Android::Support::V7::App::AppCompatActivity
     UI.context = self
     Store.context = self
 
-    main_screen = RegistrationScreen.new
+    main_screen = ExpenseScreen.new
     navigation = UI::Navigation.new(main_screen)
     flow_app = UI::Application.new(navigation, self)
     flow_app.start

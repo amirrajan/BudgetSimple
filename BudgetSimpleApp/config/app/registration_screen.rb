@@ -1,4 +1,4 @@
-class RegistrationScreen < UI::Screen
+class ExpenseScreen < UI::Screen
   include Hiccup
 
   def on_show
