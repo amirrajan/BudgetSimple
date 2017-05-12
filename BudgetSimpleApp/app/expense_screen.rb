@@ -14,8 +14,8 @@ class ExpenseScreen < UI::Screen
 
   def markup
     [:view, { background_color: '212225', flex: 1, padding: 40 },
-     [:label, { text: 'Budget Simple' }],
-     [:input, { id: :amount, placeholder: 'Amount', keyboard: :numbers_and_punctuation }],
+     [:label, { text: 'Budget Simple', font: font.merge({ size: 20 }) }],
+     [:input, { id: :amount, placeholder: 'Amount*', keyboard: :numbers_and_punctuation }],
      [:input, { id: :category, placeholder: 'Category' }],
      [:input, { id: :date,
                 placeholder: 'Date',
@@ -24,24 +24,7 @@ class ExpenseScreen < UI::Screen
                 text: format_date(*current_date) }],
      [:button, { id: :save_expense,
                  title: 'Save',
-                 tap: :save_expense }]
-     ]
-  end
-
-  def current_date
-    if ViewState.android?
-      calendar = Java::Util::Calendar.getInstance
-      year = calendar.get(Java::Util::Calendar::YEAR)
-      month = calendar.get(Java::Util::Calendar::MONTH)
-      day = calendar.get(Java::Util::Calendar::DAY_OF_MONTH)
-    else
-      components = NSCalendar.currentCalendar.components(NSCalendarUnitDay | NSCalendarUnitMonth | NSCalendarUnitYear, fromDate: NSDate.date)
-      day = components.day
-      month = components.month
-      year = components.year
-    end
-
-    [year, month, day]
+                 tap: :save_expense }]]
   end
 
   def format_date year, month, day
@@ -68,7 +51,6 @@ class ExpenseScreen < UI::Screen
               font: font.merge(size: 20) },
       input: { border_width: 1,
                border_color: '5f5f60',
-               border_radius: 5,
                background_color: :clear,
                color: 'bcc4ca',
                margin: 5,
@@ -76,10 +58,10 @@ class ExpenseScreen < UI::Screen
                padding: 20,
                font: font,
                input_offset: 10 },
+      flash: { background_color: '363a44' },
       button: { color: :white,
                 height: 40,
                 background_color: '5a82a5',
-                border_radius: 8,
                 border_width: 1,
                 border_color: '212225',
                 font: font,
@@ -87,6 +69,6 @@ class ExpenseScreen < UI::Screen
   end
 
   def font
-    { name: 'Existence-Light', size: 18, extension: :otf }
+    { name: 'Courier', size: 18 }
   end
 end
