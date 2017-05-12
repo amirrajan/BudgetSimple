@@ -57,8 +57,13 @@ module UI
       @screen.view.update_layout
     end
 
+    def prefersStatusBarHidden
+      @screen.status_bar_style == :hidden
+    end
+
     def preferredStatusBarStyle
-      @screen.status_bar_style or UIStatusBarStyleDefault
+      return UIStatusBarStyleDefault if @screen.status_bar_style == :hidden
+      @screen.status_bar_style || UIStatusBarStyleDefault
     end
   end
 
