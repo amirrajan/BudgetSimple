@@ -1,3 +1,4 @@
+# coding: utf-8
 class ExpenseScreen < UI::Screen
   include Hiccup
 
@@ -5,15 +6,30 @@ class ExpenseScreen < UI::Screen
     :hidden
   end
 
-  def markup
-    [:view, { background_color: '212225', flex: 1, padding: 20 },
-     [:label, { text: 'Budget Simple', font: font.merge({ size: 20 }) }],
+  def header
+    [:view, { flex_direction: :row },
+     [:button, { id: :hamburger,
+                 class: :hamburger,
+                 title: '0xf0c9'.hex.chr(Encoding::UTF_8),
+                 width: 50, height: 50 }],
+     [:label, { flex: 1, text: 'Budget Simple', font: font.merge({ size: 20 }), align_self: :center }],
+     [:view, { width: 50 }]]
+  end
+
+  def expense_form
+    [:view, { padding_left: 20, padding_right: 20 },
      [:input, { id: :amount, placeholder: 'Amount*', keyboard: :numbers_and_punctuation }],
      [:input, { id: :category, placeholder: 'Category' }],
      [:input, { id: :date, placeholder: 'Date', date_picker: true }],
      [:button, { id: :save_expense,
                  title: 'Save',
                  tap: :save_expense }]]
+  end
+
+  def markup
+    [:view, { background_color: '212225', flex: 1 },
+     header,
+     expense_form]
   end
 
   def save_expense *_
@@ -39,6 +55,7 @@ class ExpenseScreen < UI::Screen
                font: font,
                input_offset: 10 },
       flash: { background_color: '363a44' },
+      hamburger: { background_color: :clear, font: font_awesome },
       button: { color: :white,
                 height: 40,
                 background_color: '5a82a5',
@@ -46,6 +63,10 @@ class ExpenseScreen < UI::Screen
                 border_color: '212225',
                 font: font,
                 margin: 2 } }
+  end
+
+  def font_awesome
+    { name: 'FontAwesome', size: 18, extension: :ttf }
   end
 
   def font
