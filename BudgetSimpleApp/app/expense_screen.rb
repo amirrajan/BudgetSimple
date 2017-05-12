@@ -1,19 +1,8 @@
 class ExpenseScreen < UI::Screen
   include Hiccup
 
-  def on_load
-    $self = self
-    render markup, css
-    ViewState.current_screen = self
-    view.update_layout
-  end
-
   def status_bar_style
     :hidden
-  end
-
-  def move_view
-    views[:root][:view].proxy.frame = CGRectMake(0, -300, 100, 100)
   end
 
   def markup
@@ -25,18 +14,10 @@ class ExpenseScreen < UI::Screen
                 placeholder: 'Date',
                 date_picker: true,
                 on_change: :format_date_input,
-                text: format_date(*current_date) }],
+                text: __format_date(*current_date) }],
      [:button, { id: :save_expense,
                  title: 'Save',
                  tap: :save_expense }]]
-  end
-
-  def format_date year, month, day
-    "#{month}/#{day}/#{year}"
-  end
-
-  def format_date_input sender, *args
-    sender.text = format_date(*args)
   end
 
   def save_expense *_

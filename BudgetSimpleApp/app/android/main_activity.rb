@@ -2,8 +2,8 @@ class MainActivity < Android::Support::V7::App::AppCompatActivity
   def onCreate(savedInstanceState)
     super
 
-    ViewState.platform = :android
-    ViewState.device_screen_height = device_screen_height
+    Hiccup.platform = :android
+    Hiccup.device_screen_height = device_screen_height
     UI.context = self
     Store.context = self
 

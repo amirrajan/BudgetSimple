@@ -1,30 +1,70 @@
 module Hiccup
+  class << self
+    attr_accessor :currently_focused_control,
+                  :current_screen,
+                  :platform,
+                  :device_screen_height
+  end
+
+  def self.ios?
+    platform == :ios
+  end
+
+  def self.android?
+    !ios?
+  end
+
+  def self.blur
+    return unless currently_focused_control
+    currently_focused_control.blur
+    self.currently_focused_control = nil
+  end
+
+  def on_load
+    $self = self
+    Hiccup.current_screen = self
+    render markup, css
+    view.update_layout
+    on_load_core if respond_to? :on_load_core
+  end
+
   def on_show
     navigation.hide_bar
-    views[:flash][:view].move_y_to(ViewState.device_screen_height, false)
+    views[:flash][:view].move_y_to(Hiccup.device_screen_height, false)
     on_show_core if respond_to? :on_show_core
   end
 
+  def hiccup
+    @__hiccup ||= {}
+    @__hiccup
+  end
+
+  def debounce_flash
+    hiccup[:flash_timer].stop && hiccup[:flash_timer] = nil if hiccup[:flash_timer]
+  end
+
   def flash message
+    debounce_flash
     views[:flash_message][:view].text = message
     views[:flash][:view].move_y_to(
-      ViewState.device_screen_height -
+      Hiccup.device_screen_height -
       views[:flash][:view].proxy.frame.size.height -
       10,
       true
     )
 
-    Task.after 3 do
+    hiccup[:flash_timer] = Task.after 3 do
       dismiss_flash
     end
   end
 
   def dismiss_flash
-    views[:flash][:view].move_y_to(ViewState.device_screen_height, true)
+    debounce_flash
+    views[:flash][:view].move_y_to(Hiccup.device_screen_height, true)
   end
 
-  def init_dismiss_keyboard_on_tap_for_ios
-    return unless ViewState.ios?
+  def wire_up_dismiss_keyboard_for_ios
+    return unless Hiccup.ios?
     return if @responder
     @recognizer = UITapGestureRecognizer.alloc.initWithTarget self, action: 'blur_current_responder'
     view.proxy.addGestureRecognizer(@recognizer)
@@ -37,7 +77,7 @@ module Hiccup
 
     definition << flash_view
 
-    init_dismiss_keyboard_on_tap_for_ios
+    wire_up_dismiss_keyboard_for_ios
 
     views = {}
     classes = {}
@@ -54,10 +94,10 @@ module Hiccup
 
     setup_responders views: views, tab_orders: tab_orders, bar_button_tags: bar_button_tags
 
-    @tab_orders = tab_orders
-    @views = views
-    @classes = classes
-    @bar_button_tags = bar_button_tags
+    hiccup[:tab_orders] = tab_orders
+    hiccup[:views] = views
+    hiccup[:classes] = classes
+    hiccup[:bar_button_tags] = bar_button_tags
   end
 
   def flash_view
@@ -114,16 +154,19 @@ module Hiccup
       set_attribute instance, k, v
     end
 
+    if view_symbol == :input
+      instance.on(:focus) { Hiccup.currently_focused_control = instance }
+      if attributes[:date_picker] && !attributes[:on_change]
+        attributes[:on_change] = :__format_date_input
+      end
+    end
+
     if attributes[:on_change]
       instance.on(:change) { |*args| send(attributes[:on_change], instance, *args) }
     end
 
-    if view_symbol == :input
-      instance.on(:focus) { ViewState.currently_focused_control = instance }
-    end
-
     if attributes[:keyboard] && attributes[:keyboard] == :numbers_and_punctuation
-      if ViewState.ios?
+      if Hiccup.ios?
         instance.proxy.keyboardType = UIKeyboardTypeNumbersAndPunctuation
       end
     end
@@ -135,11 +178,19 @@ module Hiccup
     end
 
     attributes[:tap] && instance.on(:tap) do
-      ViewState.blur
+      Hiccup.blur
       send(attributes[:tap], instance, attributes)
     end
 
     instance
+  end
+
+  def __format_date_input sender, *args
+    sender.text = format_date(*args)
+  end
+
+  def __format_date year, month, day
+    "#{month}/#{day}/#{year}"
   end
 
   def control_definition? o
@@ -303,16 +354,16 @@ module Hiccup
 
   def next_control *args
     return if args.tag == -1
-    @views[@tab_orders[@bar_button_tags[args.tag]]][:view].focus
+    hiccup[:views][hiccup[:tab_orders][hiccup[:bar_button_tags][args.tag]]][:view].focus
   end
 
   def previous_control *args
     return if args.tag == -1
-    @views[@tab_orders.key(@bar_button_tags[args.tag])][:view].focus
+    hiccup[:views][hiccup[:tab_orders].key(hiccup[:bar_button_tags][args.tag])][:view].focus
   end
 
   def done *args
-    ViewState.blur
+    Hiccup.blur
   end
 
   def setup_responders opts
@@ -330,19 +381,19 @@ module Hiccup
   end
 
   def views
-    @views
+    hiccup[:views]
   end
 
   def classes
-    @classes
+    hiccup[:classes]
   end
 
   def tab_orders
-    @tab_orders
+    hiccup[:tab_orders]
   end
 
   def blur_current_responder *_
-    ViewState.blur
+    Hiccup.blur
     dismiss_flash
   end
 end

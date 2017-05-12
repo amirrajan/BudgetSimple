@@ -2,8 +2,8 @@ class AppDelegate
   attr_accessor :window
 
   def application(application, didFinishLaunchingWithOptions:launchOptions)
-    ViewState.platform = :ios
-    ViewState.device_screen_height = device_screen_height
+    Hiccup.platform = :ios
+    Hiccup.device_screen_height = device_screen_height
 
     NSNotificationCenter.defaultCenter.addObserver(
       self,
@@ -26,16 +26,16 @@ class AppDelegate
   end
 
   def keyboard_will_hide
-    ViewState.current_screen.view.move_y_to 0, true
+    Hiccup.current_screen.view.move_y_to 0, true
   end
 
   def current_view_y_shift
-    ViewState.current_screen.view.proxy.frame.origin.y
+    Hiccup.current_screen.view.proxy.frame.origin.y
   end
 
   def keyboard_did_show *notification
-    absolute_control_rect = ViewState.currently_focused_control.proxy.convertRect(
-      ViewState.currently_focused_control.proxy.bounds,
+    absolute_control_rect = Hiccup.currently_focused_control.proxy.convertRect(
+      Hiccup.currently_focused_control.proxy.bounds,
       toView: window
     )
 
@@ -45,9 +45,9 @@ class AppDelegate
                                   device_screen_height
 
     if result > 0
-      ViewState.current_screen.view.move_y_to 0, true
+      Hiccup.current_screen.view.move_y_to 0, true
     else
-      ViewState.current_screen.view.move_y_by result, true
+      Hiccup.current_screen.view.move_y_by result, true
     end
   end
 
