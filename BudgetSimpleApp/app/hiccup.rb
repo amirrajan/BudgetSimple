@@ -7,11 +7,15 @@ module Hiccup
 
   def flash message
     views[:flash_message][:view].text = message
-    views[:flash][:view].move_y_by(-views[:flash][:view].proxy.frame.size.height - 10, true)
+    views[:flash][:view].move_y_to(ViewState.device_screen_height - views[:flash][:view].proxy.frame.size.height - 10, true)
 
     Task.after 3 do
-      views[:flash][:view].move_y_by(views[:flash][:view].proxy.frame.size.height + 10, true)
+      dismiss_flash
     end
+  end
+
+  def dismiss_flash
+    views[:flash][:view].move_y_to(ViewState.device_screen_height, true)
   end
 
   def init_dismiss_keyboard_on_tap_for_ios
@@ -52,7 +56,7 @@ module Hiccup
   end
 
   def flash_view
-    [:view, { id: :flash, background_color: :purple, padding: 20 },
+    [:view, { id: :flash, padding: 20, class: :flash },
      [:label, { id: :flash_message, text: 'Flash' }]]
   end
 
@@ -334,5 +338,6 @@ module Hiccup
 
   def blur_current_responder *_
     ViewState.blur
+    dismiss_flash
   end
 end
