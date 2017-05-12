@@ -8,12 +8,16 @@ class ExpenseScreen < UI::Screen
     view.update_layout
   end
 
+  def status_bar_style
+    :hidden
+  end
+
   def move_view
     views[:root][:view].proxy.frame = CGRectMake(0, -300, 100, 100)
   end
 
   def markup
-    [:view, { background_color: '212225', flex: 1, padding: 40 },
+    [:view, { background_color: '212225', flex: 1, padding: 20 },
      [:label, { text: 'Budget Simple', font: font.merge({ size: 20 }) }],
      [:input, { id: :amount, placeholder: 'Amount*', keyboard: :numbers_and_punctuation }],
      [:input, { id: :category, placeholder: 'Category' }],
@@ -35,7 +39,7 @@ class ExpenseScreen < UI::Screen
     sender.text = format_date(*args)
   end
 
-  def save_expense sender, attributes
+  def save_expense *_
     if views[:amount][:view].text == ''
       flash 'Amount is required.'
     end
