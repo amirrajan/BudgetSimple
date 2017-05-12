@@ -10,20 +10,15 @@ class ExpenseScreen < UI::Screen
      [:label, { text: 'Budget Simple', font: font.merge({ size: 20 }) }],
      [:input, { id: :amount, placeholder: 'Amount*', keyboard: :numbers_and_punctuation }],
      [:input, { id: :category, placeholder: 'Category' }],
-     [:input, { id: :date,
-                placeholder: 'Date',
-                date_picker: true,
-                on_change: :format_date_input,
-                text: __format_date(*current_date) }],
+     [:input, { id: :date, placeholder: 'Date', date_picker: true }],
      [:button, { id: :save_expense,
                  title: 'Save',
                  tap: :save_expense }]]
   end
 
   def save_expense *_
-    if views[:amount][:view].text == ''
-      flash 'Amount is required.'
-    end
+    flash 'Amount is required.' and return if text(:amount) == ''
+    flash 'Category is required.' and return if text(:category) == ''
   end
 
   def css

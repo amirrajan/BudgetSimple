@@ -45,6 +45,7 @@ module Hiccup
 
   def flash message
     debounce_flash
+
     views[:flash_message][:view].text = message
     views[:flash][:view].move_y_to(
       Hiccup.device_screen_height -
@@ -150,19 +151,16 @@ module Hiccup
 
     instance = control_map[view_symbol].new
 
-    attributes.each do |k, v|
-      set_attribute instance, k, v
-    end
-
     if view_symbol == :input
       instance.on(:focus) { Hiccup.currently_focused_control = instance }
       if attributes[:date_picker] && !attributes[:on_change]
         attributes[:on_change] = :__format_date_input
+        attributes[:text] = __format_date(*Hiccup.current_date)
       end
     end
 
     if attributes[:on_change]
-      instance.on(:change) { |*args| send(attributes[:on_change], instance, *args) }
+      instance.on(:change) { |*args| send(attributes[:on_change], instance, args) }
     end
 
     if attributes[:keyboard] && attributes[:keyboard] == :numbers_and_punctuation
@@ -182,11 +180,19 @@ module Hiccup
       send(attributes[:tap], instance, attributes)
     end
 
+    attributes.each do |k, v|
+      set_attribute instance, k, v
+    end
+
     instance
   end
 
-  def __format_date_input sender, *args
-    sender.text = format_date(*args)
+  def __format_date_input sender, args
+    sender.text = if args.length == 1
+                    args.first
+                  else
+                    __format_date(*args)
+                  end
   end
 
   def __format_date year, month, day
@@ -362,7 +368,7 @@ module Hiccup
     hiccup[:views][hiccup[:tab_orders].key(hiccup[:bar_button_tags][args.tag])][:view].focus
   end
 
-  def done *args
+  def done *_
     Hiccup.blur
   end
 
@@ -380,6 +386,10 @@ module Hiccup
     end
   end
 
+  def text id
+    hiccup[:views][id][:view].text
+  end
+
   def views
     hiccup[:views]
   end
@@ -395,5 +405,26 @@ module Hiccup
   def blur_current_responder *_
     Hiccup.blur
     dismiss_flash
+  end
+
+  def self.current_date
+    if ios?
+      components =
+        NSCalendar.currentCalendar.components(
+          NSCalendarUnitDay |
+          NSCalendarUnitMonth |
+          NSCalendarUnitYear,
+          fromDate: NSDate.date
+        )
+
+      return [components.year, components.month, components.day]
+    end
+
+    calendar = Java::Util::Calendar.getInstance
+    year = calendar.get(Java::Util::Calendar::YEAR)
+    month = calendar.get(Java::Util::Calendar::MONTH)
+    day = calendar.get(Java::Util::Calendar::DAY_OF_MONTH)
+
+    [year, month, day]
   end
 end
