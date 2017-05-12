@@ -7,7 +7,12 @@ module Hiccup
 
   def flash message
     views[:flash_message][:view].text = message
-    views[:flash][:view].move_y_to(ViewState.device_screen_height - views[:flash][:view].proxy.frame.size.height - 10, true)
+    views[:flash][:view].move_y_to(
+      ViewState.device_screen_height -
+      views[:flash][:view].proxy.frame.size.height -
+      10,
+      true
+    )
 
     Task.after 3 do
       dismiss_flash
