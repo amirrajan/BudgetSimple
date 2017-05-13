@@ -73,6 +73,8 @@ PTY.spawn("rerun \"kill -30 #{Process.pid}\" --no-notify") do |stdout, _, _|
   end
 end
 
+run_rake
+
 while expr = Readline.readline('', true)
   if expr == 'repl'
     if !@repl
