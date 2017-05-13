@@ -28,6 +28,19 @@ module Hiccup
     on_load_core if respond_to? :on_load_core
   end
 
+  def before_on_show
+    view.background_color = css[:root][:background_color] if css[:root]
+    view.children.first.alpha = 0
+    animate { view.children.first.alpha = 1 }
+  end
+
+  def animate duration = 0.5, &block
+    UIView.beginAnimations(nil, context: nil)
+    UIView.setAnimationDuration(duration)
+    instance_eval(&block)
+    UIView.commitAnimations
+  end
+
   def on_show
     navigation.hide_bar
     views[:flash][:view].move_y_to(Hiccup.device_screen_height, false)
@@ -43,9 +56,19 @@ module Hiccup
     hiccup[:flash_timer].stop && hiccup[:flash_timer] = nil if hiccup[:flash_timer]
   end
 
+  def nav_push view
+    navigation.push(view, false)
+  end
+
+  def nav_pop
+    animate { view.children.first.alpha = 0 }
+    navigation.pop(false)
+  end
+
   def flash message
     debounce_flash
 
+    views[:flash][:view].alpha = 1
     views[:flash_message][:view].text = message
     views[:flash][:view].move_y_to(
       Hiccup.device_screen_height -
@@ -102,7 +125,7 @@ module Hiccup
   end
 
   def flash_view
-    [:view, { id: :flash, padding: 20, class: :flash },
+    [:view, { id: :flash, padding: 20, class: :flash, alpha: 0 },
      [:label, { id: :flash_message, text: 'Flash' }]]
   end
 
@@ -177,7 +200,14 @@ module Hiccup
 
     attributes[:tap] && instance.on(:tap) do
       Hiccup.blur
-      send(attributes[:tap], instance, attributes)
+      arity = method(attributes[:tap]).arity
+      if arity.zero?
+        send(attributes[:tap])
+      elsif arity == 1
+        send(attributes[:tap], instance)
+      else
+        send(attributes[:tap], instance, attributes)
+      end
     end
 
     attributes.each do |k, v|

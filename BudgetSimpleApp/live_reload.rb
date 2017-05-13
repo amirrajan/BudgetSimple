@@ -29,10 +29,26 @@ Signal.trap('SIGUSR1') do
   if first_time
     first_time = false
   else
-    `pgrep repl`.each_line { |l| Process.kill('INT', l.to_i) }
-    delete_nosync_files
-    run_rake
+    if @repl
+      results = `ruby -c repl.rb`
+      if results =~ /Syntax OK/
+        file = File.open('repl.rb', 'rb')
+        contents = file.read
+        file.close
+        @stdin.puts contents
+      else
+        puts results
+      end
+    else
+      kill_repl_and_run_rake
+    end
   end
+end
+
+def kill_repl_and_run_rake
+  `pgrep repl`.each_line { |l| Process.kill('INT', l.to_i) }
+  delete_nosync_files
+  run_rake
 end
 
 def run_rake
@@ -57,8 +73,17 @@ PTY.spawn("rerun \"kill -30 #{Process.pid}\" --no-notify") do |stdout, _, _|
   end
 end
 
-while expr = Readline.readline("", true)
-  if expr == 'exit'
+while expr = Readline.readline('', true)
+  if expr == 'repl'
+    if !@repl
+      puts 'Repl mode enabled. The app will not be reloaded and repl.rb will be sent to RM instead.'
+      @repl = true
+    else
+      @repl = false
+      puts 'Repl mode disabled.'
+      kill_repl_and_run_rake
+    end
+  elsif expr == 'exit'
     exit(0)
   else
     @stdin.puts expr

@@ -1,6 +1,7 @@
 # coding: utf-8
 class ExpenseScreen < UI::Screen
   include Hiccup
+  include Styles
 
   def status_bar_style
     :hidden
@@ -8,10 +9,7 @@ class ExpenseScreen < UI::Screen
 
   def header
     [:view, { flex_direction: :row },
-     [:button, { id: :hamburger,
-                 class: :hamburger,
-                 title: '0xf0c9'.hex.chr(Encoding::UTF_8),
-                 width: 50, height: 50 }],
+     [:button, { class: :hamburger, tap: :show_menu }],
      [:label, { flex: 1, text: 'Budget Simple', font: font.merge({ size: 20 }), align_self: :center }],
      [:view, { width: 50 }]]
   end
@@ -32,37 +30,13 @@ class ExpenseScreen < UI::Screen
      expense_form]
   end
 
-  def save_expense *_
-    flash 'Amount is required.' and return if text(:amount) == ''
-    flash 'Category is required.' and return if text(:category) == ''
+  def show_menu
+    nav_pop
   end
 
-  def css
-    { label: { text_alignment: :center,
-               margin: 10,
-               color: 'bcc4ca',
-               font: font },
-      link: { border_width: 0,
-              color: :white,
-              font: font.merge(size: 20) },
-      input: { border_width: 1,
-               border_color: '5f5f60',
-               background_color: :clear,
-               color: 'bcc4ca',
-               margin: 5,
-               height: 32,
-               padding: 20,
-               font: font,
-               input_offset: 10 },
-      flash: { background_color: '363a44' },
-      hamburger: { background_color: :clear, font: font_awesome },
-      button: { color: :white,
-                height: 40,
-                background_color: '5a82a5',
-                border_width: 1,
-                border_color: '212225',
-                font: font,
-                margin: 2 } }
+  def save_expense
+    flash 'Amount is required.' and return if text(:amount) == ''
+    flash 'Category is required.' and return if text(:category) == ''
   end
 
   def font_awesome

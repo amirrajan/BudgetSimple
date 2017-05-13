@@ -19,8 +19,9 @@ class AppDelegate
       object: nil
     )
 
-    main_screen = ExpenseScreen.new
+    main_screen = NavScreen.new
     navigation = UI::Navigation.new(main_screen)
+    main_screen.navigation.push(ExpenseScreen.new, false)
     flow_app = UI::Application.new(navigation, self)
     flow_app.start
   end
