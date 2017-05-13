@@ -24,7 +24,8 @@ class ViewLedgerScreen
               padding_left: 20,
               padding_right: 20 },
      header,
-     10.times.map { expense_view }]
+     expense_view,
+     expense_view]
   end
 end
 
