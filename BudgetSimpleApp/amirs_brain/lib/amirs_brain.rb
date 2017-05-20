@@ -1,6 +1,6 @@
 require 'date'
 
-class Fixnum
+class Integer
   def commas
     self            #=> 12345678
       .to_s             #=> "12345678"
@@ -20,8 +20,7 @@ class AmirsBrain
     end
 
     apps.each do |a|
-      puts a[:track_name]
-      puts '  - Genres: ' + a[:genres].join(', ')
+      puts a[:track_name] + " (Category: #{a[:genres].join(', ')}, Price: #{(a[:price] || 0)})"
 
       release_score = determine_release_score(a)
       if release_score == :green
@@ -40,6 +39,8 @@ class AmirsBrain
         puts '  - App has a moderate number of reviews. If the app has been recently updated, then this is probably a new app.'
       elsif user_rating_count > 10_000
         puts "  - App has an astronomical number of reviews (#{user_rating_count.commas}). If your app is similar to this one, you probably shouldn't build yours because you have little to no chance of \"beating them\"."
+      elsif user_rating_count > 5_000
+        puts "  - App has a very high number of reviews (#{user_rating_count.commas} with an average rating of #{a[:average_user_rating]}). If you're app is similar to this one, you've got some serious competition. Success is unlikely."
       else
         puts "  - App has a solid number of reviews (#{user_rating_count.commas} with an average rating of #{a[:average_user_rating]}). If you're app is similar to this one, you've got some competition, but you may be able to \"beat them\" if they have a low rating."
       end
@@ -51,21 +52,26 @@ class AmirsBrain
       elsif user_rating_count.zero?
         puts '  - This app has no ratings. It either has a very poor review conversion rate, or (more likely) has never been downloaded.'
       else
-        if a[:price] == 0
+        if a[:price].zero?
           money_per_download = (1.99 * 0.7)
-          life_time_revenue_top_end = (((user_rating_count * 0.5) * 100) * money_per_download).round.to_i
-          life_time_revenue_bottom_end = (((user_rating_count * 0.05) * 20) * money_per_download).round.to_i
+          life_time_revenue_top_end = (((user_rating_count * 0.05) * 100) * money_per_download).round.to_i
+          industry = (((user_rating_count * 0.02) * 50) * money_per_download).round.to_i
+          life_time_revenue_bottom_end = (((user_rating_count * 0.005) * 20) * money_per_download).round.to_i
         else
           money_per_download = a[:price] * 0.7
           life_time_revenue_top_end = ((user_rating_count * 100) * money_per_download).round.to_i
+          industry = ((user_rating_count * 0.02 * 50) * money_per_download).round.to_i
           life_time_revenue_bottom_end = ((user_rating_count * 20) * money_per_download).round.to_i
         end
 
         monthly_revenue_top = life_time_revenue_top_end.fdiv(life_time_of_app).round.to_i
+        monthly_revenue_industry = industry.fdiv(life_time_of_app).round.to_i
         monthly_revenue_bottom = life_time_revenue_bottom_end.fdiv(life_time_of_app).round.to_i
 
         puts "  - At best, this app has made $#{life_time_revenue_top_end.commas} over its lifetime (or $#{monthly_revenue_top.commas} a month)."
+        puts "  - Based on my own industry measurements, this app probably made $#{industry.commas} over its lifetime (or $#{monthly_revenue_industry.commas} a month)."
         puts "  - Conservatively, this app has made $#{life_time_revenue_bottom_end.commas} over its lifetime (or $#{monthly_revenue_bottom.commas} a month)."
+        puts ''
       end
     end
   end

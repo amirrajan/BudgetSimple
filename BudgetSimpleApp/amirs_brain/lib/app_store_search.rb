@@ -20,7 +20,7 @@ class AppStoreSearch
                   media: 'software',
                   term: URI.encode(term),
                   country: 'us',
-                  limit: 50
+                  limit: 15
 
     pluck results['results'],
           %w(genres price track_name track_id average_user_rating user_rating_count release_date current_version_release_date price)
