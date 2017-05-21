@@ -10,7 +10,7 @@ def options
 end
 
 def list_apps
-  Spaceship.app.all.each do |a|
+  Spaceship.app.all.map do |a|
     puts "#{a.name}: #{a.bundle_id}"
   end
 end
@@ -20,11 +20,27 @@ def go_to_apps
   system 'open https://developer.apple.com/account/ios/identifier/bundle/'
 end
 
-def gets
-  STDIN.gets.chomp
+def get_udid_of_connected_devices
+  script = <<~SCRIPT
+    i=0
+    for line in $(system_profiler SPUSBDataType | sed -n -e '/iPad/,/Serial/p' -e '/iPhone/,/Serial/p' | grep "Serial Number:" | awk -F ": " '{print $2}'); do
+        UDID=${line}
+        echo $UDID
+        udid_array[i]=${line}
+        i=$(($i+1))
+    done
+
+    cnt=${#udid_array[@]}
+    for ((i=0;i<cnt;i++)); do
+        echo ${udid_array[i]}
+    done
+ SCRIPT
+
+ system script
 end
 
-def help_with_app_name
+def gets
+  STDIN.gets.chomp
 end
 
 def help_with_certificates
